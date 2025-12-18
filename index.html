@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My 7Sins Archetype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; width: 100%; }
+body {
+  font-family: 'Poppins', sans-serif;
+  color: white;
+  background: linear-gradient(160deg, #bb1a1a, #a48bd6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-x: hidden;
+}
+.card {
+  width: 100%;
+  max-width: 440px; 
+  background: rgba(35, 35, 35, 0.45); 
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  padding: 22px 20px;
+  border-radius: 24px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.12);
+  margin: auto 0; 
+}
+h1 { 
+  text-align: center; 
+  font-size: 1.35rem; 
+  margin-top: 5px;
+  margin-bottom: 5px; 
+  text-transform: uppercase; 
+  letter-spacing: 1.5px; 
+  font-weight: 700;
+}
+.subtitle { 
+  text-align: center; 
+  font-size: 0.8rem; 
+  opacity: 0.75; 
+  margin-bottom: 25px; 
+  line-height: 1.3; 
+}
+.question { 
+  font-weight: 600; 
+  font-size: 1.1rem; 
+  text-align: center; 
+  margin-bottom: 25px !important; 
+  line-height: 1.4;
+  min-height: 3.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.answers { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 12px; 
+}
+.answer {
+  padding: 12px 18px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.14);
+  cursor: pointer;
+  font-size: 0.9rem; 
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.08);
+  min-height: 64px; 
+  height: 64px; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  line-height: 1.2;
+  overflow: hidden;
+}
+.answer:active { background: rgba(255,255,255,0.25); }
+.result { display: none; }
+.profile-name { text-align: center; font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; }
+.profile-sub { text-align: center; font-size: 0.8rem; margin-bottom: 18px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
+.desc {
+  font-size: 0.9rem; 
+  line-height: 1.6;
+  margin-bottom: 15px;
+  background: rgba(0, 0, 0, 0.25); 
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.mystic {
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.85rem;
+  font-style: italic;
+  border-left: 4px solid #fff;
+}
+.progress { margin-top: 25px; font-size: 0.75rem; font-style: italic; opacity: 0.6; text-align: center; display: block; }
+button {
+  width: 100%;
+  padding: 16px; 
+  border-radius: 18px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  background: #ffffff;
+  color: #1a1a1a;
+  margin-top: 25px;
+  text-transform: uppercase;
+  border: none;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+@media (min-width: 768px) {
+  .card { padding: 35px; max-width: 480px; }
+  h1 { font-size: 1.6rem; }
+  .profile-name { font-size: 1.8rem; }
+}
+</style>
+</head>
+<body>
+<div class="card" id="captureArea">
+  <h1>My 7 Sins Archetype</h1> 
+  <div class="subtitle">Where do you stand against the seven deadly sins?</div>
+  <div id="quiz"></div>
+  <div id="result" class="result">
+    <div class="profile-name" id="profileName"></div>
+    <div class="profile-sub" id="profileSub"></div>
+    <div class="desc" id="profileDesc"></div>
+    <div class="mystic" id="profileMystic"></div>
+    <button id="exportBtn" onclick="exportImage()">Export profile</button>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+const sins = ["Pride", "Greed", "Lust", "Envy", "Gluttony", "Wrath", "Sloth"];
+const sinColors = { 0: "#FFD700", 1: "#2ecc71", 2: "#e74c3c", 3: "#9b59b6", 4: "#e67e22", 5: "#c0392b", 6: "#3498db" };
+let score = [0, 0, 0, 0, 0, 0, 0]; 
+let i = 0;
+const questions = [
+  { q: "1. How do you react when your competency is questioned in public?", a: [{ t: "I demand immediate respect and assert my superiority.", s: {0: 3, 5: 1} }, { t: "I let it pass, knowing my worth is internal.", s: {0: 0, 6: 2} }, { t: "I remember the slight and wait to prove them wrong.", s: {0: 2, 3: 2} }, { t: "I feel momentarily diminished, but quickly dismiss it.", s: {0: 1, 6: 1} }] },
+  { q: "2. What is your primary focus when acquiring new resources?", a: [{ t: "I secure them and strategize to multiply the gain.", s: {1: 3, 0: 1} }, { t: "I use them to afford myself comfort and leisure.", s: {1: 1, 6: 2} }, { t: "I share only if it guarantees me future favor.", s: {1: 2, 3: 1} }, { t: "I find the accumulation process unsettling.", s: {1: 0, 4: 1} }] },
+  { q: "3. When an intense desire takes hold, how do you handle it?", a: [{ t: "I indulge fully; life is about intensity.", s: {2: 3, 4: 1} }, { t: "I redirect the energy into a constructive task.", s: {2: 1, 0: 2} }, { t: "I suppress it, but the thought lingers.", s: {2: 2, 3: 1} }, { t: "I observe it without acting or judging.", s: {2: 0, 6: 3} }] },
+  { q: "4. How do you feel seeing someone achieve what you yearned for?", a: [{ t: "A sharp, bitter comparison: why them?", s: {3: 3, 5: 1} }, { t: "Motivation, paired with resentment.", s: {3: 2, 1: 1} }, { t: "Curiosity to study their methods for myself.", s: {3: 1, 0: 1} }, { t: "Nothing; my path is my own.", s: {3: 0, 6: 2} }] },
+  { q: "5. What is your relationship with consuming?", a: [{ t: "I consume until satisfied, often past necessity.", s: {4: 3, 6: 1} }, { t: "I struggle with moderation and break my rules.", s: {4: 2, 2: 1} }, { t: "I use excess as an occasional reward.", s: {4: 1, 0: 1} }, { t: "I value discipline and refuse to let it control me.", s: {4: 0, 1: 1} }] },
+  { q: "6. Someone crosses a major boundary. Your reaction is:", a: [{ t: "Immediate, decisive fury.", s: {5: 3, 0: 1} }, { t: "Cold and calculated retaliation.", s: {5: 2, 1: 1} }, { t: "I cut ties instantly; no effort wasted.", s: {5: 1, 6: 2} }, { t: "I reflect on why I allowed it to happen.", s: {5: 0, 3: 1} }] },
+  { q: "7. When faced with extended free time, what happens?", a: [{ t: "I lose all direction and rest until disconnected.", s: {6: 3, 4: 1} }, { t: "I struggle to start, settling for passive media.", s: {6: 2, 3: 1} }, { t: "I use the time to complete postponed tasks.", s: {6: 0, 1: 2} }, { t: "I rest deeply, then start a project with energy.", s: {6: 1, 2: 1} }] }
+];
+const profiles = {
+    "0-1": {n: "The Dynast", sub: "Self-Respect Dominant, Shadow of Ambition", d: "Your profound sense of self-worth acts as the blueprint for your ambition. You pursue resources and success not for wealth itself, but because your high standards demand proven excellence.", m: "Your presence is a non-negotiable standard; your orbit only attracts high-value exchanges."},
+    "0-2": {n: "The Charismatic", sub: "Self-Respect Dominant, Shadow of Passion", d: "You possess a powerful, attractive confidence that governs your passions. Your desires are elevated, pursuing connections and experiences that reflect the prestige and respect you hold for yourself.", m: "Attraction follows your controlled aura, recognizing your selective energy and high-bar magnetism."},
+    "0-3": {n: "The Elite", sub: "Self-Respect Dominant, Shadow of Aspiration", d: "Your confidence allows you to view others' achievements as necessary challenges. You use external success not for bitterness, but as a critical benchmark to ensure you always remain at the forefront of your field.", m: "You turn observation into fuel; every success you witness informs your next move to maintain leadership."},
+    "0-4": {n: "The Noble", sub: "Self-Respect Dominant, Shadow of Intensity", d: "You demand the absolute finest in every experience—be it knowledge, culture, or material quality. Your high self-regard translates into an unyielding commitment to premium quality in all consumption.", m: "Your selective palate refines the energy around you, filtering out the mediocre and demanding complexity."},
+    "0-5": {n: "The Commander", sub: "Self-Respect Dominant, Shadow of Justice", d: "Your sense of justice is rooted in your personal code of honor. You maintain emotional composure, letting others disqualify themselves through their actions, which are met with silent, dignified separation.", m: "Your dismissal is final; you separate yourself from chaos with a quiet, powerful authority."},
+    "0-6": {n: "The Philosopher", sub: "Self-Respect Dominant, Shadow of Efficiency", d: "You are exceptionally selective about where you expend your effort, treating your energy as a high-value resource. Your refusal to engage in trivial tasks ensures your reserve is available for high-impact goals.", m: "You are a vessel of controlled power, saving your force for moments where maximum influence is required."},
+    "1-0": {n: "The Architect", sub: "Ambition Dominant, Shadow of Self-Respect", d: "Your drive to accumulate is driven by the need for visible proof of your capabilities. Every resource secured serves as validation of your inherent competence and high standards.", m: "Your endeavors carry the weight of certainty, effortlessly attracting the necessary tools for success."},
+    "1-2": {n: "The Curator", sub: "Ambition Dominant, Shadow of Passion", d: "Your ambition extends to your desires; you pursue life and love with a compelling need for deep engagement and ownership of the experience. You are committed to maximizing emotional and sensory returns.", m: "You do not simply feel attraction; you claim and integrate the desired energy into your future path."},
+    "1-3": {n: "The Strategist", sub: "Ambition Dominant, Shadow of Aspiration", d: "You constantly scan the external landscape, using the success of others as a dynamic map to guide your own resource-gathering efforts. You learn from every competitive edge you observe.", m: "Your focus turns competition into valuable data, fueling precise, highly informed moves."},
+    "1-4": {n: "The Visionary", sub: "Ambition Dominant, Shadow of Intensity", d: "You seek to absorb and master all dimensions of a subject or experience. Your drive isn't just to possess things, but to possess the entirety of the knowledge and context surrounding them.", m: "Your curiosity is a gravitational force, pulling complex systems into your command."},
+    "1-5": {n: "The Maverick", sub: "Ambition Dominant, Shadow of Justice", d: "You apply intense focus and resolve to safeguard everything you have built. Your fierce defense of your resources, status, or territory is a hallmark of your commitment to stability.", m: "Your boundaries are fortified with commitment, making your space safe and inviolable."},
+    "1-6": {n: "The Guardian", sub: "Ambition Dominant, Shadow of Efficiency", d: "You are highly selective about the work you do, ensuring every action contributes directly to growth or security. Your aversion to useless effort makes you an unparalleled strategist for maximizing output.", m: "Your efficiency creates momentum, ensuring maximal returns for minimal expenditure of force."},
+    "2-0": {n: "The Muse", sub: "Passion Dominant, Shadow of Self-Respect", d: "Your intense focus and magnetism attract attention and admiration. Your passions are a powerful force for social connection and self-expression, elevating your presence and inspiring others.", m: "Your inner light is vivid; your focused desire acts as a beacon, drawing high-quality connections."},
+    "2-1": {n: "The Magnet", sub: "Passion Dominant, Shadow of Ambition", d: "When focused, your passions become a powerful engine for achievement. You channel intense desire into securing the long-term rewards and resources necessary to fulfill your vision.", m: "Your commitment transforms fleeting interest into tangible, lasting outcomes."},
+    "2-3": {n: "The Aesthetic", sub: "Passion Dominant, Shadow of Aspiration", d: "You have a natural radar for cutting-edge desires and emerging trends. You pursue novelty and intensity with a focus that often puts you ahead of the curve, defining what is valuable next.", m: "You possess a powerful 'now' energy, integrating new possibilities before they become mainstream."},
+    "2-4": {n: "The Sensualist", sub: "Passion Dominant, Shadow of Intensity", d: "Your desires are a gateway to profound depth. You seek experiences that saturate your senses and absorb you entirely, pushing boundaries to feel fully alive and integrated with the moment.", m: "You ride the waves of sensation, extracting maximum insight from every experience."},
+    "2-5": {n: "The Flame", sub: "Passion Dominant, Shadow of Justice", d: "You use the power of your emotions to define clear boundaries. When a line is crossed, your intense reaction provides immediate clarity, allowing you to resolve conflicts quickly and honestly.", m: "Your emotional honesty cuts through confusion, establishing clear terms for connection."},
+    "2-6": {n: "The Dreamer", sub: "Passion Dominant, Shadow of Efficiency", d: "You naturally cycle between intense periods of focus and deep periods of detachment. This rhythm of high-yield activity followed by complete rest optimizes your mental and emotional energy.", m: "You instinctively know when to push and when to pause, maximizing sustainable performance."},
+    "3-0": {n: "The Refiner", sub: "Aspiration Dominant, Shadow of Self-Respect", d: "You use the success of others not to diminish yourself, but as external motivation. Your self-respect demands that you rise to meet the standard set by the best, driving rapid personal development.", m: "You convert external excellence into internal ambition, continuously raising your own ceiling."},
+    "3-1": {n: "The Aspiring", sub: "Aspiration Dominant, Shadow of Ambition", d: "Your keen awareness of others' achievements allows you to anticipate market needs and opportunities. You are constantly strategizing to acquire the resources that will bridge the gap between your current state and your aspirations.", m: "Your competitive vision provides exceptional foresight for resource allocation."},
+    "3-2": {n: "The Observer", sub: "Aspiration Dominant, Shadow of Passion", d: "You are highly attentive to the qualities of successful relationships, seeking to integrate those dynamics into your own connections. You aspire to create the most fulfilling, desired, and resonant partnerships.", m: "You see the potential in bonds, using observed fulfillment as a blueprint for your own deeper connections."},
+    "3-4": {n: "The Adaptable", sub: "Aspiration Dominant, Shadow of Intensity", d: "You possess a discerning eye for the highest levels of experience. You pursue new ventures and knowledge with the intensity required to match the masters you admire.", m: "Your benchmark is always set high, ensuring that your pursuit of growth is rigorous and rewarding."},
+    "3-5": {n: "The Challenger", sub: "Aspiration Dominant, Shadow of Justice", d: "You are keenly attuned to systemic unfairness. Your drive to correct competitive injustices makes you a powerful advocate for ethical standards and a fierce opponent of unwarranted privilege.", m: "You sense competitive fraudulence, making you a powerful agent of necessary equilibrium."},
+    "3-6": {n: "The Silent", sub: "Aspiration Dominant, Shadow of Efficiency", d: "You channel your energy only into endeavors that are demonstrably successful. Your keen observational drive prevents you from wasting time on unproven paths, guaranteeing highly focused effort.", m: "Your inertia is a powerful screening tool, preventing commitment to wasteful or ambiguous pursuits."},
+    "4-0": {n: "The Epicurean", sub: "Intensity Dominant, Shadow of Self-Respect", d: "You pursue the highest quality and quantity of experiences to reflect your superior taste and capacity. Your intense absorption is a quiet validation of your status and depth.", m: "Your presence elevates the environment, naturally demanding the best experiences available."},
+    "4-1": {n: "The Abundant", sub: "Intensity Dominant, Shadow of Ambition", d: "Your ambition is fueled by the need for continuous, rich input—be it knowledge, culture, or sensation. You see these intense experiences as essential capital for future wisdom and success.", m: "You treat life like a library, absorbing and integrating vast amounts of data at high speed."},
+    "4-2": {n: "The Reveler", sub: "Intensity Dominant, Shadow of Passion", d: "You are deeply attuned to pleasure and sensation, capable of transforming simple acts into profound experiences. Your intensity is a source of powerful creativity and connection.", m: "You live in high definition, extracting maximum flavor and emotion from every moment."},
+    "4-3": {n: "The Seeker", sub: "Intensity Dominant, Shadow of Aspiration", d: "Your relentless pursuit of new sensations and knowledge naturally pushes boundaries. You explore extremes that others avoid, providing unique insights that benefit your community.", m: "You are an explorer of limits, constantly expanding the known terrain of experience."},
+    "4-5": {n: "The Primal", sub: "Intensity Dominant, Shadow of Justice", d: "You use strong emotional expression to ensure your needs are met and your creative process is respected. Your intensity is a powerful tool for demanding and securing the necessary space for your work.", m: "Your energetic demands clear the way, ensuring uninhibited access to the resources you need."},
+    "4-6": {n: "The Gourmet", sub: "Intensity Dominant, Shadow of Efficiency", d: "You operate in powerful bursts of intense activity followed by necessary, deep rest. This cyclic approach allows for total immersion and total recovery, optimizing your overall productivity.", m: "You naturally manage energy like a wave, knowing when to crest and when to recede."},
+    "5-0": {n: "The Vanguard", sub: "Justice Dominant, Shadow of Self-Respect", d: "Your sense of justice is inextricably linked to honor and dignity. You are a powerful defender of ethical standards, using your intensity to enforce respect for yourself and others.", m: "You project an aura of non-negotiable principle, demanding integrity in every interaction."},
+    "5-1": {n: "The Resolute", sub: "Justice Dominant, Shadow of Ambition", d: "Your resolve is focused on protecting the stability and security you have built. You use decisive action to eliminate threats to your future goals or resources, maintaining an environment of growth.", m: "Your intensity is a surgical tool, cutting away obstacles to long-term success."},
+    "5-2": {n: "The Intense", sub: "Justice Dominant, Shadow of Passion", d: "You harness the raw power of emotion to bring difficult truths to light. Your honesty, though intense, clears the air and establishes profound, authentic connections with others.", m: "Your emotional candor is a cleansing fire, burning away falsehood and superficiality."},
+    "5-3": {n: "The Justiciar", sub: "Justice Dominant, Shadow of Aspiration", d: "You are keenly attuned to systemic unfairness. Your drive for justice is motivated by the aspiration to create a level playing field, ensuring competence, not circumstance, determines success.", m: "You are an advocate for balance, constantly working to restore parity in competitive spaces."},
+    "5-4": {n: "The Hunter", sub: "Justice Dominant, Shadow of Intensity", d: "When a boundary is threatened, you mobilize an overwhelming response. This concentrated energy ensures the problem is resolved completely and immediately, often through decisive, powerful action.", m: "You summon profound energy to guarantee swift, total resolution to any conflict."},
+    "5-6": {n: "The Fortress", sub: "Justice Dominant, Shadow of Efficiency", d: "You are slow to engage in conflict, but once a clear line is crossed, your response is brief and definitive. You spend minimal energy on repeated issues, preferring decisive, one-time enforcement.", m: "You establish permanent solutions; a rule broken once is a line never tested again."},
+    "6-0": {n: "The Ascetic", sub: "Efficiency Dominant, Shadow of Self-Respect", d: "You prioritize inner stability and reject unnecessary drama, viewing external effort that doesn't serve a goal as beneath your attention. Your quiet confidence protects your peace.", m: "Your detachment allows you to see systems clearly, undisturbed by the noise of constant activity."},
+    "6-1": {n: "The Minimalist", sub: "Efficiency Dominant, Shadow of Ambition", d: "Your focus on conserving energy makes you a brilliant strategist for resource management. You achieve maximum results with minimal investment, a master of the efficient goal.", m: "You maximize leverage; your minimal input yields surprising, expansive results."},
+    "6-2": {n: "The Mystic", sub: "Efficiency Dominant, Shadow of Passion", d: "Your deepest periods of rest are followed by intense, targeted bursts of action driven by passion. You harness the power of cyclical energy to pursue what truly moves you.", m: "You cultivate your resources, ensuring that your motivation is always potent and directed."},
+    "6-3": {n: "The Meditative", sub: "Efficiency Dominant, Shadow of Aspiration", d: "You only dedicate energy to paths that are proven and highly promising. Your aspiration is filtered through a rigorous efficiency lens, making you highly discerning about your commitments.", m: "Your inertia is a powerful screening tool, preventing commitment to wasteful or ambiguous pursuits."},
+    "6-4": {n: "The Serene", sub: "Efficiency Dominant, Shadow of Intensity", d: "You possess a unique ability to arrange your environment for maximum pleasure and minimal physical effort. You find intense satisfaction in comfort, ease, and effortless abundance.", m: "You draw ease into your orbit, creating an environment of effortless well-being."},
+    "6-5": {n: "The Stoic", sub: "Efficiency Dominant, Shadow of Justice", d: "You avoid conflict as a rule, but when pushed, your sharp reaction serves as a powerful, immediate deterrent. You manage crises by ensuring a quick return to peace and stability.", m: "You are the ultimate regulator, ensuring that disruption is short-lived and immediately corrected."},
+    "FALLBACK": {n: "The Oracle", sub: "Perfect Equilibrium · All Drives Balanced", d: "Your scores indicate a rare and profound equilibrium between all seven cardinal forces. You possess a unique mastery over all drives, allowing you to choose your focus with perfect neutrality and adaptability.", m: "Your energy resonates with absolute clarity, giving you the freedom to choose your nature moment by moment."}
+};
+const quiz = document.getElementById("quiz");
+function render(){
+  const q = questions[i];
+  quiz.innerHTML = `
+    <div class="question">${q.q}</div>
+    <div class="answers">
+     ${q.a.map((x,j) => `<div class="answer" onclick="pick(${j})">${x.t}</div>`).join("")}
+    </div>
+    <div class="progress">${sins[i]} · ${i+1} / 7</div>
+  `;
+}
+function pick(j) {
+  const scoresToAdd = questions[i].a[j].s;
+  for (const [idx, pts] of Object.entries(scoresToAdd)) {
+    score[parseInt(idx)] += pts;
+  }
+  i++;
+  i < questions.length ? render() : showResult();
+}
+function showResult() {
+  let indexed = score.map((v, idx) => ({ v, idx })).sort((a,b)=>b.v-a.v);
+  let p = profiles[`${indexed[0].idx}-${indexed[1].idx}`] || profiles["FALLBACK"];
+  document.body.style.background = `linear-gradient(160deg, ${sinColors[indexed[0].idx]}, ${sinColors[indexed[1].idx]})`;
+  document.getElementById("quiz").style.display = "none";
+  document.getElementById("result").style.display = "block";
+  document.getElementById("profileName").textContent = p.n;
+  document.getElementById("profileSub").textContent = p.sub;
+  document.getElementById("profileDesc").textContent = p.d;
+  document.getElementById("profileMystic").textContent = p.m;
+}
+function exportImage() {
+  const area = document.getElementById("captureArea");
+  const btn = document.getElementById("exportBtn");
+  const currentBg = getComputedStyle(document.body).backgroundImage;
+  btn.style.visibility = 'hidden';
+  const exportWidth = 420; 
+  const exportHeight = area.offsetHeight + 40; 
+  html2canvas(document.body, {
+    scale: 3,
+    useCORS: true,
+    allowTaint: true,
+    width: exportWidth,
+    height: exportHeight,
+    windowWidth: exportWidth,
+    onclone: (clonedDoc) => {
+      const body = clonedDoc.body;
+      body.style.background = currentBg;
+      body.style.display = "flex";
+      body.style.flexDirection = "column";
+      body.style.alignItems = "center";
+      body.style.justifyContent = "center";
+      body.style.height = exportHeight + "px";
+      body.style.width = exportWidth + "px";
+      body.style.margin = "0";
+      body.style.padding = "0";
+      const clonedArea = clonedDoc.getElementById("captureArea");
+      clonedArea.style.backgroundColor = "rgba(25, 25, 25, 0.4)"; 
+      clonedArea.style.width = "90%"; 
+      clonedArea.style.maxWidth = "90%";
+      clonedArea.style.backdropFilter = "none";
+      clonedArea.style.webkitBackdropFilter = "none";
+      clonedArea.style.margin = "0 auto";
+      clonedArea.style.boxShadow = "0 20px 50px rgba(0,0,0,0.3)";
+      const clonedBtn = clonedDoc.getElementById("exportBtn");
+      if(clonedBtn) clonedBtn.style.display = "none";
+    }
+  }).then(canvas => {
+    btn.style.visibility = 'visible';
+    const link = document.createElement("a");
+    link.download = "my-archetype.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
+}
+render();
+</script>
+</body>
+</html>
